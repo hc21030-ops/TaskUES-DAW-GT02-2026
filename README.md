@@ -3,3 +3,4 @@
 
 ## Integrantes
 * Josué Carlos Hernandez Chorro - HC21030
+* Mario Ernesto Montoya Vasquez - MV16013
