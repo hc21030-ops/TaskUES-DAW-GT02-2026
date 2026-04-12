@@ -1,36 +1,49 @@
+package com.ues.daw.taskues_backend.controller;
+
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.ues.daw.taskues_backend.dto.UserDTO;
 import com.ues.daw.taskues_backend.service.UserService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-@Tag(name = "Users", description = "API para la gestión de usuarios")
+@Tag(name = "Usuarios", description = "Operaciones relacionadas con la gestión de perfiles de usuario") // Cambié "Users" por "Usuarios" para que sea más legible
 public class UserController {
 
     private final UserService service;
 
     @GetMapping
-    @Operation(summary = "Listar todos los usuarios")
+    @Operation(summary = "Listar todos los usuarios", description = "Retorna una lista completa de usuarios registrados en la base de datos.")
     public List<UserDTO> listar() {
         return service.findAll();
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener un usuario por ID")
+    @Operation(summary = "Obtener usuario por ID", description = "Busca un usuario específico utilizando su identificador único.")
     public UserDTO obtener(@PathVariable Long id) {
         return service.findById(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Crear un nuevo usuario")
+    @Operation(summary = "Crear nuevo usuario", description = "Registra un nuevo usuario en el sistema. Requiere los datos del perfil y una contraseña.")
     public UserDTO crear(
             @RequestBody UserDTO dto,
             @RequestParam String password) {
@@ -38,7 +51,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar un usuario")
+    @Operation(summary = "Actualizar usuario", description = "Modifica la información de un usuario existente. El ID debe coincidir con un registro activo.")
     public UserDTO actualizar(
             @PathVariable Long id,
             @RequestBody UserDTO dto) {
@@ -47,7 +60,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Eliminar un usuario")
+    @Operation(summary = "Eliminar usuario", description = "Elimina permanentemente el registro del usuario de la base de datos.")
     public void eliminar(@PathVariable Long id) {
         service.delete(id);
     }
