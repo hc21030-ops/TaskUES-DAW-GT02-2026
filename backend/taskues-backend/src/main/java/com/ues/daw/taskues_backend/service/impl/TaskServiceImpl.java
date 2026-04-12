@@ -1,37 +1,77 @@
-package com.ues.daw.taskues_backend.service.impl;
+package com.ues.daw.taskues_backend.service;
 
-import com.ues.daw.taskues_backend.entity.Task;
-import com.ues.daw.taskues_backend.repository.TaskRepository;
-import com.ues.daw.taskues_backend.service.TaskService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ues.daw.taskues_backend.dto.UserDTO;
+import com.ues.daw.taskues_backend.entity.User;
+import com.ues.daw.taskues_backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
-public class TaskServiceImpl implements TaskService {
+@RequiredArgsConstructor
+public class UserService {
 
-    @Autowired
-    private TaskRepository taskRepository;
+    private final UserRepository repository;
 
-    @Override
-    public List<Task> findAll() {
-        return taskRepository.findAll();
+    private UserDTO toDTO(User user) {
+        return UserDTO.builder()
+                .userId(user.getUserId())
+                .name(user.getName())
+                .lastname(user.getLastname())
+                .email(user.getEmail())
+                .state(user.getState())
+                .dateCreated(user.getDateCreated())
+                .lastAccess(user.getLastAccess())
+                .build();
     }
 
-    @Override
-    public Optional<Task> findById(Long id) {
-        return taskRepository.findById(id);
+    private User toEntity(UserDTO dto, String passwordHash) {
+        return User.builder()
+                .userId(dto.getUserId())
+                .name(dto.getName())
+                .lastname(dto.getLastname())
+                .email(dto.getEmail())
+                .passwordHash(passwordHash)
+                .state(dto.getState() != null ? dto.getState() : true)
+                .lastAccess(LocalDateTime.now())
+                .build();
     }
 
-    @Override
-    public Task save(Task task) {
-        return taskRepository.save(task);
+    public List<UserDTO> findAll() {
+        return repository.findAll()
+                .stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
-    @Override
-    public void deleteById(Long id) {
-        taskRepository.deleteById(id);
+    public UserDTO findById(Long id) {
+        return repository.findById(id)
+                .map(this::toDTO)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
+
+    public UserDTO save(UserDTO dto, String passwordHash) {
+        User user = repository.save(toEntity(dto, passwordHash));
+        return toDTO(user);
+    }
+
+    public UserDTO update(Long id, UserDTO dto) {
+        User user = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        user.setName(dto.getName());
+        user.setLastname(dto.getLastname());
+        user.setEmail(dto.getEmail());
+        user.setState(dto.getState());
+        user.setLastAccess(LocalDateTime.now());
+
+        return toDTO(repository.save(user));
+    }
+
+    public void delete(Long id) {
+        repository.deleteById(id);
     }
 }
