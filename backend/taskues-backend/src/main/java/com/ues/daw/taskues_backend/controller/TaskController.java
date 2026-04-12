@@ -1,41 +1,57 @@
 package com.ues.daw.taskues_backend.controller;
 
-import com.ues.daw.taskues_backend.entity.Task;
-import com.ues.daw.taskues_backend.service.TaskService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import com.ues.daw.taskues_backend.dto.UserDTO;
+import com.ues.daw.taskues_backend.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/tasks")
-@CrossOrigin(origins = "*") 
-public class TaskController {
+@RequestMapping("/api/users")
+@RequiredArgsConstructor
+@Tag(name = "Users", description = "API para la gestión de usuarios")
+public class UserController {
 
-    @Autowired
-    private TaskService taskService;
+    private final UserService service;
 
     @GetMapping
-    public List<Task> getAllTasks() {
-        return taskService.findAll();
+    @Operation(summary = "Listar todos los usuarios")
+    public List<UserDTO> listar() {
+        return service.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
-        return taskService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @Operation(summary = "Obtener un usuario por ID")
+    public UserDTO obtener(@PathVariable Long id) {
+        return service.findById(id);
     }
 
     @PostMapping
-    public Task createTask(@RequestBody Task task) {
-        return taskService.save(task);
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Crear un nuevo usuario")
+    public UserDTO crear(
+            @RequestBody UserDTO dto,
+            @RequestParam String password) {
+        return service.save(dto, password);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Actualizar un usuario")
+    public UserDTO actualizar(
+            @PathVariable Long id,
+            @RequestBody UserDTO dto) {
+        return service.update(id, dto);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
-        taskService.deleteById(id);
-        return ResponseEntity.noContent().build();
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Eliminar un usuario")
+    public void eliminar(@PathVariable Long id) {
+        service.delete(id);
     }
+}
 }
