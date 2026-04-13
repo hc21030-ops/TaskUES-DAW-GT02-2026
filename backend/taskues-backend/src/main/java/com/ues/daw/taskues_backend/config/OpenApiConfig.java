@@ -16,7 +16,10 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("TaskUES API") 
                         .version("1.0.0")
-                        .description("Sistema de gestión de tareas para el Laboratorio 2")
+                        .description("API REST para la gestión de tareas colaborativas (TaskUES). "
+                                + "Desarrollada con Spring Boot y PostgreSQL para el "
+                                + "La aplicación tiene como objetivo facilitar la organización de "
+                                + "actividades académicas y profesionales")
                         .contact(new Contact()
                                 .name("Mario Montoya")
                                 .email("mv16013@ues.edu.sv")));
