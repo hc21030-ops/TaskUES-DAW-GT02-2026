@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
-import TaskForm from './components/layout/TaskForm.jsx';
-import TaskList from './components/layout/TaskList.jsx';
-import { initialTasks } from './utils/mockData.js';
-import './App.css';
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from './assets/vite.svg'
+import heroImg from './assets/hero.png'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import './App.css'
+
+import { useEffect } from 'react';
+import UserCreatePage from './pages/users/UserCreatePage';
 
 function App() {
   const [tasks, setTasks] = useState(initialTasks);
@@ -42,25 +46,12 @@ function App() {
   };
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <header style={{ textAlign: 'center', marginBottom: '30px', borderBottom: '2px solid #eee', paddingBottom: '20px' }}>
-        <h1>TaskUES - Gestión de Tareas</h1>
-        <p style={{ color: '#666' }}>Laboratorio 3: Simulación de Consumo de API y Diseño Responsivo</p>
-      </header>
-
-      <main>
-        <TaskForm 
-          onSaveTask={handleSaveTask} 
-          taskToEdit={taskToEdit} 
-          onCancelEdit={handleCancelEdit} 
-        />
-        <TaskList 
-          tasks={tasks} 
-          onEdit={handleEditClick} 
-          onDelete={handleDeleteTask} 
-        />
-      </main>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/"  element={<UserCreatePage />} />
+        <Route path="/users/Create" element={<UserCreatePage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
