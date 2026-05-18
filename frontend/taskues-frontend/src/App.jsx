@@ -6,13 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css'
 
 import { useEffect } from 'react';
-import { LoginPage } from './pages/auth/LoginPage';
-import { RegisterPage } from './pages/auth/RegisterPage';
-import { DashboardPage } from './pages/dashboard/DashboardPage';
-import { UsersListPage } from './pages/users/UsersListPage';
-import { useAuthStore } from './store/authStore';
-import { UserCreatePage } from './pages/users/UserCreatePage';
-import { UserEditPage } from './pages/users/UserEditPage';
+import UserCreatePage from './pages/users/UserCreatePage';
 
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -27,7 +21,8 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={} />
+        <Route path="/"  element={<UserCreatePage />} />
+        <Route path="/users/Create" element={<UserCreatePage />} />
       </Routes>
     </BrowserRouter>
   );
