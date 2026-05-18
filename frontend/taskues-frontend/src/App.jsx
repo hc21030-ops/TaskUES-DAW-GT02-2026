@@ -9,14 +9,41 @@ import { useEffect } from 'react';
 import UserCreatePage from './pages/users/UserCreatePage';
 
 function App() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const loadUser = useAuthStore((state) => state.loadUser);
+  const [tasks, setTasks] = useState(initialTasks);
+  const [taskToEdit, setTaskToEdit] = useState(null);
 
-  useEffect(() => {
-    loadUser();
-  }, []);
+  const handleSaveTask = (taskData) => {
+    if (taskData.id) {
+      // Simulación PUT
+      setTasks(tasks.map(t => t.id === taskData.id ? taskData : t));
+      setTaskToEdit(null);
+      alert(`[Simulación PUT] Tarea ID ${taskData.id} actualizada con éxito.`);
+    } else {
+      // Simulación POST
+      const newTask = {
+        ...taskData,
+        id: tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1
+      };
+      setTasks([...tasks, newTask]);
+      alert(`[Simulación POST] Nueva tarea creada bajo el ID ${newTask.id}.`);
+    }
+  };
 
-  const [count, setCount] = useState(0)
+  const handleEditClick = (task) => {
+    setTaskToEdit(task);
+  };
+
+  const handleCancelEdit = () => {
+    setTaskToEdit(null);
+  };
+
+  const handleDeleteTask = (id) => {
+    // Simulación DELETE
+    const confirmDelete = window.confirm(`¿Estás seguro de eliminar la tarea con ID: ${id}? (Simulación DELETE)`);
+    if (confirmDelete) {
+      setTasks(tasks.filter(t => t.id !== id));
+    }
+  };
 
   return (
     <BrowserRouter>
@@ -28,4 +55,4 @@ function App() {
   );
 }
 
-export default App
+export default App;
