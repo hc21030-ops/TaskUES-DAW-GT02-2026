@@ -1,31 +1,45 @@
-import { useUsers } from "../../context/UsersContext";
+
 
 export const authService = {
-  login: async (credentials) => {
-    const { users } = useUsers();
+  login: async (credentials, users) => {
 
     return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Buscar usuario en mock data
 
-        const user = users.find((u) => u.email === credentials.email);
-        if (user && credentials.password.length >= 6) {
+      setTimeout(() => {
+
+        const user = users.find(
+          (u) => u.email === credentials.email
+        );
+
+        if (
+          user &&
+          user.password_hash === credentials.password
+        ) {
+
           resolve({
             user: {
               user_id: user.user_id,
               name: user.name,
-              lastname: user.lastname,
+              last_name: user.last_name,
               email: user.email,
               state: user.state,
               date_created: user.date_created,
               last_access: new Date().toISOString(),
             },
+
             token: "mock_token_" + Date.now(),
           });
+
         } else {
-          reject(new Error("Email o contraseña incorrectos"));
+
+          reject(
+            new Error("Email o contraseña incorrectos")
+          );
+
         }
+
       }, 500);
+
     });
   },
   register: async (data) => {

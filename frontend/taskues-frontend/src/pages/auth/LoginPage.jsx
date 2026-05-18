@@ -19,7 +19,6 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-
 export const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -47,31 +46,43 @@ export const LoginPage = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setError("");
+
     if (!validateForm()) {
       return;
     }
-    const user = users.find(
-      (u) =>
-        u.email.toLowerCase() === email.toLowerCase() &&
-        u.password_hash === password
-    );
-    if (!user) {
-      setErrors({ credentials: "Correo o contraseña incorrectos" });
-      setToast({ message: "Correo o contraseña incorrectos", type: "danger" });
-      return;
-    }
+
     setLoading(true);
+
     try {
-      const { user, token } = await authService.login({ email, password });
+      const { user, token } = await authService.login(
+        { email, password },
+        users,
+      );
+
       login(user, token);
-      setToast({ message: `Bienvenido ${user.name}`, type: "success" });
-      setTimeout(() => navigate("/dashboard"), 500);
+
+      setToast({
+        message: `Bienvenido ${user.name}`,
+        type: "success",
+      });
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 500);
     } catch (err) {
-      setError(err.message || "Error al iniciar sesión");
+      setErrors({
+        credentials: "Correo o contraseña incorrectos",
+      });
+
+      setToast({
+        message: err.message || "Error al iniciar sesión",
+        type: "danger",
+      });
     } finally {
       setLoading(false);
     }
@@ -168,6 +179,11 @@ export const LoginPage = () => {
               Iniciar Sesión{" "}
             </Button>{" "}
           </form>{" "}
+          {errors.credentials && (
+            <p className="text-red-500 text-sm text-center mt-2">
+              {errors.credentials}
+            </p>
+          )}
           {/* Divider */} <div className="my-8 border-t border-zinc-200"></div>{" "}
           {/* Register */}{" "}
           <p className="text-center text-sm sm:text-base text-zinc-500">
