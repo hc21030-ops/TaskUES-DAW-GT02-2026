@@ -2,6 +2,7 @@ package com.ues.daw.taskues_backend.dto;
 
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -16,4 +17,5 @@ public class UserDTO {
     private Boolean state;
     private LocalDateTime dateCreated;
     private LocalDateTime lastAccess;
+    private Set<String> roles;
 }
