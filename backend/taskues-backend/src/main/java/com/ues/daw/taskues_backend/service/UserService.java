@@ -2,6 +2,8 @@ package com.ues.daw.taskues_backend.service;
 
 import com.ues.daw.taskues_backend.dto.UserDTO;
 import com.ues.daw.taskues_backend.entity.User;
+import com.ues.daw.taskues_backend.entity.Role;
+import com.ues.daw.taskues_backend.exception.ResourceNotFoundException;
 import com.ues.daw.taskues_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,9 @@ public class UserService {
                 .state(user.getState())
                 .dateCreated(user.getDateCreated())
                 .lastAccess(user.getLastAccess())
+                .roles(user.getRoles().stream()
+                        .map(Role::getName)
+                        .collect(Collectors.toSet()))
                 .build();
     }
 
@@ -60,18 +65,21 @@ public class UserService {
 
     public UserDTO update(Long id, UserDTO dto) {
         User user = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario con id " + id + " no encontrado"));
 
         user.setName(dto.getName());
         user.setLastname(dto.getLastname());
         user.setEmail(dto.getEmail());
-        user.setState(dto.getState());
+        user.setState(dto.getState() != null ? dto.getState() : user.getState());
         user.setLastAccess(LocalDateTime.now());
 
         return toDTO(repository.save(user));
     }
 
     public void delete(Long id) {
+        if (!repository.existsById(id)) {
+            throw new ResourceNotFoundException("Usuario con id " + id + " no encontrado");
+        }
         repository.deleteById(id);
     }
 }
