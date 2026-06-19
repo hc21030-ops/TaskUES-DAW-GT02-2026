@@ -1,9 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from "@heroui/react";
-<<<<<<< HEAD
-//import { LayoutDashboard, Users, Users2, LogOut } from 'lucide-react';
-=======
->>>>>>> 492e9e5 (feat: add create project entity)
 import {
   LayoutDashboard,
   FolderKanban,
@@ -19,16 +15,10 @@ export const Sidebar = ({ mobile }) => {
   const { logout } = useAuth();
 
   const menuItems = [
-<<<<<<< HEAD
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/users', label: 'Usuarios', icon: Users },
-    { path: '/tasks', label: 'Tareas', icon: FolderKanban }
-
-=======
-    { path: '/dashboard',  label: 'Dashboard',  icon: LayoutDashboard },
+    { path: '/tasks', label: 'Tareas', icon: FolderKanban },
     { path: '/projects',   label: 'Proyectos',  icon: FolderKanban },
-    { path: '/users',      label: 'Usuarios',   icon: Users },
->>>>>>> 492e9e5 (feat: add create project entity)
   ];
 
   const handleLogout = () => {
