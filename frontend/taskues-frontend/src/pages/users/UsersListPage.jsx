@@ -5,39 +5,81 @@ import { Card } from "../../components/common/Card";
 import { Button } from "../../components/common/Button";
 import { Input } from "../../components/common/Input";
 import { Badge } from "../../components/common/Badge";
+import { Toast } from "../../components/common/Toast";
 import { useNavigate } from "react-router-dom";
-import { useUsers } from "../../context/UsersContext";
+import { userService } from "../../services/userService";
 import { AlertDialog, Button as HeroButton } from "@heroui/react";
+
 export const UsersListPage = () => {
-  const { users, setUsers } = useUsers();
-  const [filteredUsers, setFilteredUsers] = useState(users);
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
   const navigate = useNavigate();
-  // Filtrar usuarios
+
+  useEffect(() => {
+    const cargarUsuarios = async () => {
+      try {
+        const data = await userService.getAll();
+        setUsers(data);
+      } catch (err) {
+        setToast({
+          message: err.message || "No se pudieron cargar los usuarios",
+          type: "danger",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    cargarUsuarios();
+  }, []);
+
   useEffect(() => {
     const filtered = users.filter(
       (user) =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()),
+        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.lastname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredUsers(filtered);
   }, [searchTerm, users]);
+
   const handleDeleteClick = (user) => {
     setSelectedUser(user);
     setShowDeleteDialog(true);
   };
-  const confirmDelete = () => {
+
+  const confirmDelete = async () => {
     if (!selectedUser) return;
-    setUsers(users.filter((u) => u.user_id !== selectedUser.user_id));
-    setShowDeleteDialog(false);
-    setSelectedUser(null);
+    try {
+      await userService.remove(selectedUser.userId);
+      setUsers(users.filter((u) => u.userId !== selectedUser.userId));
+      setToast({ message: "Usuario eliminado correctamente", type: "success" });
+    } catch (err) {
+      setToast({
+        message: err.message || "No se pudo eliminar el usuario",
+        type: "danger",
+      });
+    } finally {
+      setShowDeleteDialog(false);
+      setSelectedUser(null);
+    }
   };
+
   return (
     <MainLayout>
       <div className="max-w-7xl mx-auto">
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+
         {/* Header */}
         <div className="flex justify-between mb-8">
           <div className="text-center sm:text-left w-full">
@@ -49,6 +91,7 @@ export const UsersListPage = () => {
             </p>
           </div>
         </div>
+
         {/* Búsqueda */}
         <Card className="mb-6 flex flex-col-reverse sm:flex-row items-center gap-4">
           <div className="w-full sm:flex-1 flex items-center">
@@ -72,90 +115,83 @@ export const UsersListPage = () => {
             </Button>
           </div>
         </Card>
-        {/* Tabla de Usuarios */}
+
+        {/* Tabla */}
         <Card>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray700">
-                    Nombre
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray700">
-                    Estado
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                    Último Acceso
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray700">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="text-left">
-                {filteredUsers.map((user, index) => (
-                  <tr
-                    key={user.user_id}
-                    className={`border-b border-gray-200 ${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    } hover:bg-gray-100`}
-                  >
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {user.name} {user.lastname}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {user.email}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      {user.state ? (
-                        <>
-                          <Badge variant="success">Activo</Badge>
-                        </>
-                      ) : (
-                        <>
-                          <Badge variant="primary">Inactivo</Badge>
-                        </>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {new Date(user.last_access).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() =>
-                            navigate(`/users/${user.user_id}/edit`)
-                          }
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(user)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {filteredUsers.length === 0 && (
+          {loading ? (
             <div className="text-center py-12">
-              <p className="text-gray-600">No se encontraron usuarios</p>
+              <p className="text-gray-600">Cargando usuarios...</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nombre</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Roles</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Último Acceso</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="text-left">
+                  {filteredUsers.map((user, index) => (
+                    <tr
+                      key={user.userId}
+                      className={`border-b border-gray-200 ${
+                        index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      } hover:bg-gray-100`}
+                    >
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {user.name} {user.lastname}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {user.roles?.join(", ") || "—"}
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        {user.state ? (
+                          <Badge variant="success">Activo</Badge>
+                        ) : (
+                          <Badge variant="primary">Inactivo</Badge>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {user.lastAccess
+                          ? new Date(user.lastAccess).toLocaleDateString()
+                          : "—"}
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => navigate(`/users/${user.userId}/edit`)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(user)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {filteredUsers.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-gray-600">No se encontraron usuarios</p>
+                </div>
+              )}
             </div>
           )}
         </Card>
-        <AlertDialog
-          isOpen={showDeleteDialog}
-          onOpenChange={setShowDeleteDialog}
-        >
+
+        <AlertDialog isOpen={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <AlertDialog.Backdrop>
             <AlertDialog.Container>
               <AlertDialog.Dialog className="sm:max-w-100">
@@ -168,7 +204,7 @@ export const UsersListPage = () => {
                   <p>
                     ¿Deseas eliminar al usuario{" "}
                     <strong>
-                      {selectedUser?.name} {selectedUser?.last_name}
+                      {selectedUser?.name} {selectedUser?.lastname}
                     </strong>
                     ?
                   </p>

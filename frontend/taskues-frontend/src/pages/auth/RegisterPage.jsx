@@ -15,8 +15,10 @@ import { Card } from "../../components/common/Card";
 import { Input } from "../../components/common/Input";
 import { Button } from "../../components/common/Button";
 import { useUsers } from "../../context/UsersContext";
+import { authService } from "../../services/authService";
 import { validators } from "../../utils/validators";
 import { Toast } from "../../components/common/Toast";
+
 export const RegisterPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -28,9 +30,11 @@ export const RegisterPage = () => {
   const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [error, setError] = useState("");
   const [toast, setToast] = useState(null);
+
   const validateForm = () => {
     const newErrors = {};
     if (!email) {
@@ -38,19 +42,17 @@ export const RegisterPage = () => {
     } else if (!validators.email(email)) {
       newErrors.email = "Por favor ingresa un correo válido";
     }
-    const isExisted = users.some(
-      (u) => u.email.toLowerCase() === email.toLowerCase(),
-    );
-    if (isExisted) {
-      newErrors.email = "El correo ya está registrado";
-    }
     if (!name) {
       newErrors.name = "El nombre es requerido";
     }
-    if (!name) {
+    if (!lastName) {
       newErrors.lastName = "El apellido es requerido";
     }
-    if (!password) newErrors.password = "La contraseña es requerida.";
+    if (!password) {
+      newErrors.password = "La contraseña es requerida.";
+    } else if (!validators.password(password)) {
+      newErrors.password = "La contraseña debe tener al menos 6 caracteres.";
+    }
     if (!passwordConfirm) {
       newErrors.passwordConfirm = "Confirma tu contraseña.";
     } else if (password !== passwordConfirm) {
@@ -59,30 +61,45 @@ export const RegisterPage = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setErrors({});
+
     if (!validateForm()) {
       return;
     }
-    const newUser = {
-      user_id: Math.max(...users.map((u) => u.user_id)) + 1,
-      name: name,
-      last_name: lastName,
-      email: email,
-      password_hash: "hashed",
-      state: true,
-      date_created: new Date().toISOString(),
-      last_access: new Date().toISOString(),
-    };
-    users.push(newUser);
-    setUsers(users);
-    setToast({
-      message: `¡Usuario registrado exitosamente!`,
-      type: "success",
-    });
-    setTimeout(() => navigate("/login"), 500);
+
+    setLoading(true);
+
+    try {
+      const { user, token } = await authService.register({
+        name,
+        lastname: lastName,
+        email,
+        password,
+      });
+
+      login(user, token);
+
+      setToast({
+        message: `¡Bienvenido a TaskUES, ${user.name}!`,
+        type: "success",
+      });
+
+      setTimeout(() => navigate("/dashboard"), 500);
+    } catch (err) {
+      setErrors({ email: err.message });
+
+      setToast({
+        message: err.message || "Error al registrar el usuario",
+        type: "danger",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
+
   return (
     <div className="min-h-screen bg-zinc-100">
       {/* Container */}
@@ -114,7 +131,7 @@ export const RegisterPage = () => {
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Crear Cuenta</h1>
           </div>
-          <div className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {/* Nombre y Apellido — stacked en mobile, lado a lado en md+ */}
             <div className="flex flex-col gap-4 md:flex-row">
               <Input
@@ -147,7 +164,6 @@ export const RegisterPage = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               label="Correo electrónico"
-              type="email"
               placeholder="Ingrese un correo electrónico"
               icon={<Mail size={16} />}
               error={errors.email}
@@ -167,13 +183,10 @@ export const RegisterPage = () => {
                       ? "border-red-500 focus:ring-red-500"
                       : "border-gray-300 focus:ring-blue-500"
                   }`}
-                  label="Contraseña"
                   type={showPassword ? "text" : "password"}
                   placeholder="Crea una contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  icon={<Lock size={16} />}
-                  error={errors.password}
                 />
                 <button
                   type="button"
@@ -192,24 +205,18 @@ export const RegisterPage = () => {
               )}
             </div>
             <div className="mb-4">
-              <label
-                className="block text-sm font-semibold text-gray-700 mb-2 text-center
-sm:text-left"
-              >
+              <label className="block text-sm font-semibold text-gray-700 mb-2 text-center sm:text-left">
                 Confirmar contraseña <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                 <input
-                  label="Confirmar Contraseña"
                   type={showConfirm ? "text" : "password"}
                   placeholder="Confirma tu contraseña"
                   value={passwordConfirm}
                   onChange={(e) => setPasswordConfirm(e.target.value)}
-                  icon={<Lock size={16} />}
-                  error={errors.passwordConfirm}
                   className={`w-full pl-10 pr-10 text-black py-2 border rounded-lg focus:outlinenone focus:ring-2 ${
-                    errors.password
+                    errors.passwordConfirm
                       ? "border-red-500 focus:ring-red-500"
                       : "border-gray-300 focus:ring-blue-500"
                   }`}
@@ -234,16 +241,17 @@ sm:text-left"
             </div>
             {/* Botón */}
             <Button
+              type="submit"
               variant="primary"
               size="lg"
               fullWidth
-              onClick={handleSubmit}
+              loading={loading}
               className="mt-2 flex items-center justify-center gap-2"
             >
               Crear Cuenta
               <ArrowRight size={18} />
             </Button>
-          </div>
+          </form>
           {/* Divider */}
           <div className="my-8 border-t border-zinc-200"></div>
           {/* Register */}
@@ -253,7 +261,7 @@ sm:text-left"
               className="font-semibold text-blue-600 cursor-pointer hover:underline"
               onClick={() => navigate("/login")}
             >
-              Inica sesión aquí
+              Inicia sesión aquí
             </span>
           </p>
         </Card>

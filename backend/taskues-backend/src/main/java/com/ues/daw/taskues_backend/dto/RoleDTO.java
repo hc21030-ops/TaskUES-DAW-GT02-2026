@@ -8,7 +8,7 @@ import lombok.*;
 @Builder
 public class RoleDTO {
 
-    private Integer roleId;
+    private Long roleId;
     private String name;
     private String description;
 }

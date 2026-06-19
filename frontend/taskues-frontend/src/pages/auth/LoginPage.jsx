@@ -50,7 +50,7 @@ export const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setError("");
+    setErrors({});
 
     if (!validateForm()) {
       return;
@@ -76,7 +76,7 @@ export const LoginPage = () => {
       }, 500);
     } catch (err) {
       setErrors({
-        credentials: "Correo o contraseña incorrectos",
+        credentials: err.message || "Correo o contraseña incorrectos",
       });
 
       setToast({
