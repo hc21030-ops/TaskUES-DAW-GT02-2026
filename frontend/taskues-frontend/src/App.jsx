@@ -12,6 +12,8 @@ import { UsersListPage } from "./pages/users/UsersListPage";
 import { useAuthStore } from "./store/authStore";
 import { UserCreatePage } from "./pages/users/UserCreatePage";
 import { UserEditPage } from "./pages/users/UserEditPage";
+import { TaskListPage } from "./pages/tasks/TaskListPage";
+
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const loadUser = useAuthStore((state) => state.loadUser);
@@ -25,6 +27,7 @@ function App() {
         {/* Rutas públicas */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        
         {/* Rutas protegidas */}
         {isAuthenticated ? (
           <>
@@ -32,6 +35,7 @@ function App() {
             <Route path="/users" element={<UsersListPage />} />
             <Route path="/users/create" element={<UserCreatePage />} />
             <Route path="/users/:id/edit" element={<UserEditPage />} />
+            <Route path="/tasks" element={<TaskListPage />} />
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </>
         ) : (

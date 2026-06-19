@@ -1,0 +1,7 @@
+target/
+mvnw.cmd
+.git/
+.idea/
+.gitatributes
+.gitignore
+.DS_Store

@@ -8,6 +8,7 @@ import { Badge } from "../../components/common/Badge";
 import { useNavigate } from "react-router-dom";
 import { useUsers } from "../../context/UsersContext";
 import { AlertDialog, Button as HeroButton } from "@heroui/react";
+
 export const UsersListPage = () => {
   const { users, setUsers } = useUsers();
   const [filteredUsers, setFilteredUsers] = useState(users);
@@ -25,6 +26,7 @@ export const UsersListPage = () => {
     );
     setFilteredUsers(filtered);
   }, [searchTerm, users]);
+
   const handleDeleteClick = (user) => {
     setSelectedUser(user);
     setShowDeleteDialog(true);

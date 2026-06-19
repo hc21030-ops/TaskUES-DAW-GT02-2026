@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from "@heroui/react";
-// import { LayoutDashboard, Users, Users2, LogOut } from 'lucide-react';
+//import { LayoutDashboard, Users, Users2, LogOut } from 'lucide-react';
 import {
   LayoutDashboard,
   FolderKanban,
@@ -20,6 +20,8 @@ export const Sidebar = ({ mobile }) => {
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/users', label: 'Usuarios', icon: Users },
+    { path: '/tasks', label: 'Tareas', icon: FolderKanban }
+
   ];
 
   const handleLogout = () => {
