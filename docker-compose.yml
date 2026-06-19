@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # 1. Servicio de Base de Datos (PostgreSQL)
+  database:
+    image: postgres:16-alpine
+    container_name: app_database
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: taskues_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - taskues_network
+
+  # 2. Servicio Backend (Java / Spring Boot)
+  backend-taskues-api:
+    build:
+      context: ./backend/taskues-backend
+      dockerfile: Dockerfile
+    container_name: mi_backend_api
+    image: task-backend:1.0
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/taskues_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=123456
+    depends_on:
+      - database
+    networks:
+      - taskues_network
+
+  # 3. Servicio Frontend (React / Nginx)
+  frontend-taskues:
+    build:
+      context: ./frontend/taskues-frontend
+      dockerfile: Dockerfile
+    container_name: mi_frontend
+    image: taskues-frontend:1.0
+    restart: always
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend-taskues-api
+    networks:
+      - taskues_network
+
+# Declaración global de volúmenes
+volumes:
+  postgres_data:
+
+# Declaración global de redes (alineada totalmente a la izquierda)
+networks:
+  taskues_network:
+    driver: bridge
