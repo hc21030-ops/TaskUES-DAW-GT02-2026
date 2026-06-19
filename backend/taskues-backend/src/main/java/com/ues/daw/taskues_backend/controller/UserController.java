@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-@Tag(name = "Usuarios", description = "Operaciones relacionadas con la gestión de perfiles de usuario") // Cambié "Users" por "Usuarios" para que sea más legible
+@Tag(name = "Usuarios", description = "Operaciones relacionadas con la gestión de perfiles de usuario")
 public class UserController {
 
     private final UserService service;
@@ -39,15 +39,6 @@ public class UserController {
     @Operation(summary = "Obtener usuario por ID", description = "Busca un usuario específico utilizando su identificador único.")
     public UserDTO obtener(@PathVariable Long id) {
         return service.findById(id);
-    }
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Crear nuevo usuario", description = "Registra un nuevo usuario en el sistema. Requiere los datos del perfil y una contraseña.")
-    public UserDTO crear(
-            @RequestBody UserDTO dto,
-            @RequestParam String password) {
-        return service.save(dto, password);
     }
 
     @PutMapping("/{id}")

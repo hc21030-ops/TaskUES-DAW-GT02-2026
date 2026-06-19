@@ -1,2 +1,10 @@
 Archivo Git Ignore
 
+.# Archivos de dependencias bloqueadas
+package-lock.json
+
+# Configuración de IntelliJ / WebStorm
+.idea/
+
+
+.env
