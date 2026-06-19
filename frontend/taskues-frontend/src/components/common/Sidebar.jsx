@@ -17,7 +17,7 @@ export const Sidebar = ({ mobile }) => {
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/users', label: 'Usuarios', icon: Users },
-    { path: '/tasks', label: 'Tareas', icon: FolderKanban },
+    { path: '/tasks', label: 'Mis Tareas', icon: FolderKanban },
     { path: '/projects',   label: 'Proyectos',  icon: FolderKanban },
   ];
 

@@ -12,6 +12,7 @@ import { Badge } from "../../components/common/Badge";
 import { Toast } from "../../components/common/Toast";
 import { projectService } from "../../services/projectService";
 import { projectUserService } from "../../services/projectUserService";
+import { userService } from "../../services/userService";
 import { AlertDialog, Button as HeroButton } from "@heroui/react";
 
 const STATE_BADGE = {
@@ -38,23 +39,30 @@ export const ProjectDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
 
+  // Agregar miembro
   const [newUserId, setNewUserId] = useState("");
   const [newRole, setNewRole] = useState("MEMBER");
   const [addingMember, setAddingMember] = useState(false);
   const [addError, setAddError] = useState("");
+  const [allUsers, setAllUsers] = useState([]);
 
+  // Eliminar miembro
   const [selectedMember, setSelectedMember] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   useEffect(() => {
     const cargar = async () => {
       try {
-        const [proj, mems] = await Promise.all([
+        const [proj, mems, todos] = await Promise.all([
           projectService.getById(id),
           projectUserService.getByProjectId(id),
+          userService.getAll(),
         ]);
         setProject(proj);
         setMembers(mems);
+        // Solo muestra usuarios que aún no son miembros del proyecto
+        const memberIds = new Set(mems.map((m) => m.userId));
+        setAllUsers(todos.filter((u) => !memberIds.has(u.userId)));
       } catch (err) {
         setToast({ message: err.message || "No se pudo cargar el proyecto", type: "danger" });
       } finally {
@@ -68,9 +76,8 @@ export const ProjectDetailPage = () => {
     e.preventDefault();
     setAddError("");
 
-    const userId = parseInt(newUserId);
-    if (!newUserId || isNaN(userId)) {
-      setAddError("Ingresa un ID de usuario válido");
+    if (!newUserId) {
+      setAddError("Selecciona un usuario");
       return;
     }
 
@@ -78,10 +85,12 @@ export const ProjectDetailPage = () => {
     try {
       const nuevo = await projectUserService.addMember({
         projectId: parseInt(id),
-        userId,
+        userId: parseInt(newUserId),
         projectRole: newRole,
       });
       setMembers([...members, nuevo]);
+      // Quitar el usuario recién agregado del select de disponibles
+      setAllUsers(allUsers.filter((u) => u.userId !== parseInt(newUserId)));
       setNewUserId("");
       setNewRole("MEMBER");
       setToast({ message: "Miembro agregado correctamente", type: "success" });
@@ -143,6 +152,7 @@ export const ProjectDetailPage = () => {
           <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
         )}
 
+        {/* Volver */}
         <button
           onClick={() => navigate("/projects")}
           className="flex items-center gap-2 text-gray-500 hover:text-gray-700 transition mb-6"
@@ -151,6 +161,7 @@ export const ProjectDetailPage = () => {
           <span className="text-sm">Volver a proyectos</span>
         </button>
 
+        {/* Info del proyecto */}
         <Card className="mb-6">
           <div className="flex items-start gap-4">
             <div className="bg-blue-900 p-3 rounded-xl shrink-0">
@@ -162,19 +173,38 @@ export const ProjectDetailPage = () => {
                 <Badge variant={badge.variant}>{badge.label}</Badge>
               </div>
               <p className="text-gray-600 text-sm mb-4">{project.description}</p>
-              <div className="flex items-center gap-2 text-xs text-gray-400">
-                <Calendar className="w-3.5 h-3.5" />
-                <span>
-                  Creado el{" "}
-                  {project.dateCreated
-                    ? new Date(project.dateCreated).toLocaleDateString()
-                    : "—"}
-                </span>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>
+                    Creado el{" "}
+                    {project.dateCreated
+                      ? new Date(project.dateCreated).toLocaleDateString()
+                      : "—"}
+                  </span>
+                </div>
+                <div className="flex gap-2 ml-auto">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => navigate(`/projects/${id}/categories`)}
+                  >
+                    Categorías
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => navigate(`/projects/${id}/kanban`)}
+                  >
+                    Ver Tablero →
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
         </Card>
 
+        {/* Miembros */}
         <Card>
           <div className="flex items-center gap-3 mb-6">
             <Users className="w-5 h-5 text-blue-700" />
@@ -186,6 +216,7 @@ export const ProjectDetailPage = () => {
             </span>
           </div>
 
+          {/* Lista de miembros */}
           <div className="divide-y divide-gray-100 mb-6">
             {members.map((member) => {
               const roleConf = ROLE_CONFIG[member.projectRole] ?? ROLE_CONFIG.MEMBER;
@@ -239,42 +270,61 @@ export const ProjectDetailPage = () => {
               <UserPlus className="w-4 h-4" />
               Agregar miembro
             </h3>
-            <form onSubmit={handleAddMember} className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1">
-                <Input
-                  type="number"
-                  placeholder="ID del usuario"
-                  value={newUserId}
-                  onChange={(e) => { setNewUserId(e.target.value); setAddError(""); }}
-                  error={addError}
-                />
-              </div>
-              <div className="sm:w-40">
-                <select
-                  value={newRole}
-                  onChange={(e) => setNewRole(e.target.value)}
-                  className="w-full px-4 py-2 text-black border border-gray-300 rounded-lg
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 h-10.5"
+            {allUsers.length === 0 ? (
+              <p className="text-sm text-gray-400">
+                Todos los usuarios registrados ya son miembros de este proyecto.
+              </p>
+            ) : (
+              <form onSubmit={handleAddMember} className="flex flex-col sm:flex-row gap-3">
+                {/* Select de usuarios disponibles */}
+                <div className="flex-1">
+                  <select
+                    value={newUserId}
+                    onChange={(e) => { setNewUserId(e.target.value); setAddError(""); }}
+                    className={`w-full px-4 py-2 text-black border rounded-lg
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 h-10.5
+                      ${addError ? "border-red-500" : "border-gray-300"}`}
+                  >
+                    <option value="">Selecciona un usuario...</option>
+                    {allUsers.map((u) => (
+                      <option key={u.userId} value={u.userId}>
+                        {u.name} {u.lastname} — {u.email}
+                      </option>
+                    ))}
+                  </select>
+                  {addError && (
+                    <p className="text-red-500 text-sm mt-1">{addError}</p>
+                  )}
+                </div>
+                {/* Select de rol */}
+                <div className="sm:w-40">
+                  <select
+                    value={newRole}
+                    onChange={(e) => setNewRole(e.target.value)}
+                    className="w-full px-4 py-2 text-black border border-gray-300 rounded-lg
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 h-10.5"
+                  >
+                    {ROLES.map((r) => (
+                      <option key={r} value={r}>
+                        {ROLE_CONFIG[r].label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  loading={addingMember}
+                  className="sm:w-auto w-full h-10.5"
                 >
-                  {ROLES.map((r) => (
-                    <option key={r} value={r}>
-                      {ROLE_CONFIG[r].label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <Button
-                type="submit"
-                variant="primary"
-                loading={addingMember}
-                className="sm:w-auto w-full h-10.5"
-              >
-                Agregar
-              </Button>
-            </form>
+                  Agregar
+                </Button>
+              </form>
+            )}
           </div>
         </Card>
 
+        {/* Dialog confirmación quitar miembro */}
         <AlertDialog isOpen={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <AlertDialog.Backdrop>
             <AlertDialog.Container>

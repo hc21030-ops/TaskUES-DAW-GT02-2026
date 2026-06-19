@@ -16,6 +16,9 @@ import { TaskListPage } from "./pages/tasks/TaskListPage";
 import { ProjectsListPage } from "./pages/projects/ProjectsListPage";
 import { ProjectCreatePage } from "./pages/projects/ProjectCreatePage";
 import { ProjectDetailPage } from "./pages/projects/ProjectDetailPage";
+import { CategoriesPage }   from "./pages/projects/CategoriesPage";
+import { KanbanPage }       from "./pages/projects/KanbanPage";
+import { TaskCreatePage }   from "./pages/tasks/TaskCreatePage";
 
 function App() {
 
@@ -52,10 +55,12 @@ function App() {
             <Route path="/users/:id/edit" element={<UserEditPage />} />
             <Route path="/tasks" element={<TaskListPage />} />
  
-            <Route path="/projects" element={<ProjectsListPage />} />
-            <Route path="/projects/create" element={<ProjectCreatePage />} />
-            <Route path="/projects/:id" element={<ProjectDetailPage />} />
- 
+            <Route path="/projects"                        element={<ProjectsListPage />} />
+            <Route path="/projects/create"                 element={<ProjectCreatePage />} />
+            <Route path="/projects/:id"                    element={<ProjectDetailPage />} />
+            <Route path="/projects/:id/categories"         element={<CategoriesPage />} />
+            <Route path="/projects/:id/kanban"             element={<KanbanPage />} />
+            <Route path="/projects/:id/tasks/create"       element={<TaskCreatePage />} />
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </>
         ) : (
