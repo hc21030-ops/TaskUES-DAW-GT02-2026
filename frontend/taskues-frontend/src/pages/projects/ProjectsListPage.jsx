@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Folder, Trash2, Eye } from "lucide-react";
+import { Plus, Search, Folder, FolderKanban, Trash2, Eye } from "lucide-react";
 import { MainLayout } from "../../components/layout/MainLayout";
 import { Card } from "../../components/common/Card";
 import { Button } from "../../components/common/Button";
@@ -90,6 +90,7 @@ export const ProjectsListPage = () => {
           </div>
         </div>
 
+        {/* Búsqueda + Crear */}
         <Card className="mb-6 flex flex-col-reverse sm:flex-row items-center gap-4">
           <div className="w-full sm:flex-1">
             <Input
@@ -113,6 +114,7 @@ export const ProjectsListPage = () => {
           </div>
         </Card>
 
+        {/* Grid de proyectos */}
         {loading ? (
           <div className="text-center py-16">
             <p className="text-gray-500">Cargando proyectos...</p>
@@ -138,7 +140,7 @@ export const ProjectsListPage = () => {
                   key={project.projectId}
                   className="flex flex-col justify-between gap-4 hover:shadow-lg transition-shadow"
                 >
-
+                  {/* Encabezado */}
                   <div>
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <h2 className="text-lg font-bold text-gray-900 leading-tight">
@@ -157,6 +159,13 @@ export const ProjectsListPage = () => {
                         : "—"}
                     </span>
                     <div className="flex gap-2">
+                      <button
+                        onClick={() => navigate(`/projects/${project.projectId}/kanban`)}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
+                        title="Ver tablero"
+                      >
+                        <FolderKanban className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => navigate(`/projects/${project.projectId}`)}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
